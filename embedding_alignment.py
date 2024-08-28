@@ -1,6 +1,7 @@
 import pickle as pkl
 import tqdm
 import numpy as np
+from scipy.spatial import distance
 
 FILES = ['liberal_traces.pkl', 'conservative_traces.pkl']
 
@@ -184,7 +185,28 @@ class Projection:
 
         return sorted(distances.items(), key=lambda item: item[1])[:n]
 
+    def get_diff(self):
+        """
+        Get the difference between the original and projected vectors for each key.
 
+        Returns:
+            dict: A dictionary of key-value pairs where the key is the vector key and the value is the difference.
+        """
+        differences = {}
+        for key in self.vectors[self.range]:
+            original_vector = self.get_vector(key)
+            projected_vector = self.project_key(key)
+            cos_distance = distance.cosine(original_vector,projected_vector)
+            '''
+            if cos_distance > 1:
+                cos_distance = 1
+            if cos_distance<0:
+                cos_distance = 0
+            '''
+            differences[key] = cos_distance
+            
+        return differences
 proj = Projection(FILES)
-print(proj.rotation_matrix)
-KEY = 'r5Rp8FTJpUU'
+diff = proj.get_diff()
+
+differences = sorted(diff.items(), key=lambda item: item[1])
